@@ -3,9 +3,9 @@ package dev.qdo.htmx_demo.controller;
 import dev.qdo.htmx_demo.dto.Book;
 import dev.qdo.htmx_demo.dto.BookForm;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,14 +19,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
-
 public class BookController {
 
-  private final Set<Book> books = new ConcurrentSkipListSet<>(Comparator.comparing(Book::id));
+  private final Map<Integer, Book> books = new ConcurrentHashMap<>();
 
   BookController() {
-    books.add(new Book("Game of Thrones", "George R. R. Martin"));
-    books.add(new Book("Sword of Destiny", "Andrzej Sapkowski"));
+    addBook("Game of Thrones", "George R. R. Martin");
+    addBook("Sword of Destiny", "Andrzej Sapkowski");
+  }
+
+  private void addBook(String title, String author) {
+    Book book = new Book(title, author);
+    books.put(book.id(), book);
   }
 
   @GetMapping("/")
@@ -36,45 +40,49 @@ public class BookController {
 
   @GetMapping("/books")
   public String getBooks(Model model) {
-    model.addAttribute("books", books);
+    model.addAttribute("books", books.values());
     return "book :: book-all";
   }
 
   @GetMapping("/books/edit-modal/{bookId}")
   public String getBookModal(@PathVariable Integer bookId, Model model) {
-    books.stream()
-        .filter(b -> b.id().equals(bookId))
-        .findFirst()
-        .ifPresent(book -> model.addAttribute("book", book));
+    var book = books.get(bookId);
+    if (book != null) {
+      model.addAttribute("book", book);
+    }
     return "modal :: edit-modal";
   }
 
   @PostMapping("/books")
   public String createBooks(@ModelAttribute BookForm bookForm, Model model) {
-    var book = Book.toBook(bookForm);
-    books.add(book);
+    Book book = new Book(bookForm.title(), bookForm.author());
+    books.put(book.id(), book);
     model.addAttribute("books", Collections.singletonList(book));
     return "book :: book-row";
   }
 
   @PostMapping("/books/search")
   public String searchBooks(@RequestParam("search") String search, Model model) {
-    final String finalSearch = search.toLowerCase().trim();
-    model.addAttribute("books",
-        books.stream()
-            .filter(b ->
-                b.title().toLowerCase().contains(finalSearch)
-                    || b.author().toLowerCase().contains(finalSearch))
-            .toList());
+    String query = search.toLowerCase().trim();
+
+    if (query.isEmpty()) {
+      model.addAttribute("books", books.values());
+    } else {
+      List<Book> filteredBooks = books.values().stream()
+          .filter(b -> b.title().toLowerCase().contains(query)
+              || b.author().toLowerCase().contains(query))
+          .toList();
+      model.addAttribute("books", filteredBooks);
+    }
+
     return "book :: book-all";
   }
 
   @PutMapping(path = "books/{bookId}")
   public String editBooks(@ModelAttribute BookForm bookForm, @PathVariable Integer bookId,
       Model model) {
-    books.stream().filter(b -> b.id().equals(bookId)).forEach(books::remove);
-    var updatedBook = new Book(bookId, bookForm.title(), bookForm.author());
-    books.add(updatedBook);
+    Book updatedBook = new Book(bookId, bookForm.title(), bookForm.author());
+    books.put(bookId, updatedBook);
     model.addAttribute("books", Collections.singletonList(updatedBook));
     return "book :: book-row";
   }
@@ -82,7 +90,7 @@ public class BookController {
   @ResponseBody
   @DeleteMapping(produces = MediaType.TEXT_HTML_VALUE, path = "books/{bookId}")
   public String deleteBooks(@PathVariable Integer bookId) {
-    books.stream().filter(b -> b.id().equals(bookId)).forEach(books::remove);
+    books.remove(bookId);
     return "";
   }
 }
