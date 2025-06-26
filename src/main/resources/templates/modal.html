@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Modal</title>
+  <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:fragment="edit-modal" class="modal-dialog">
+  <div class="modal-content">
+
+    <form
+        th:attr="hx-put=@{/books/{id}(id=${book.id()})}"
+        th:attrappend="hx-target='tr[data-id=&quot;' + ${book.id()} + '&quot;]'"
+        hx-swap="outerHTML">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Edit Book</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="title" class="form-label">Title</label>
+          <input type="text"
+                 class="form-control"
+                 name="title"
+                 placeholder="Title"
+                 th:value="${book.title()}"
+                 required>
+        </div>
+        <div class="mb-3">
+          <label for="author" class="form-label">Author</label>
+          <input type="text"
+                 class="form-control"
+                 name="author"
+                 placeholder="Author"
+                 th:value="${book.author()}"
+                 required>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">
+          Save changes
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+</body>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Books</title>
+  <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:fragment="book-all" class="row justify-content-center">
+  <table class="table table-bordered">
+    <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Title</th>
+      <th scope="col">Author</th>
+      <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="book : ${books}" th:fragment="book-row" th:attr="data-id=${book.id()}">
+      <td th:text="${book.id()}"></td>
+      <td th:text="${book.title()}"></td>
+      <td th:text="${book.author()}"></td>
+      <td>
+        <button class="btn btn-primary"
+                th:attr="hx-get=@{/books/edit-modal/{id}(id=${book.id()})}"
+                hx-trigger="click"
+                hx-target="#edit-modal"
+                data-bs-toggle="modal"
+                data-bs-target="#edit-modal">
+          <i class="bi bi-pencil-fill"></i> Edit
+        </button>
+        <button class="btn btn-danger"
+                th:attr="hx-delete=@{/books/{id}(id=${book.id()})}"
+                hx-target="closest tr"
+                hx-swap="outerHTML">
+          <i class="bi bi-trash3-fill"></i> Delete
+        </button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+</body>
