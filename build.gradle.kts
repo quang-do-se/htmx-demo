@@ -22,6 +22,11 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-web")
 
+    runtimeOnly("org.webjars.npm:htmx.org:2.0.5")
+    runtimeOnly("org.webjars.npm:bootstrap:5.3.7")
+    runtimeOnly("org.webjars.npm:bootstrap-icons:1.13.1")
+    runtimeOnly("org.webjars:webjars-locator-core:0.48")
+
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
